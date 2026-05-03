@@ -335,9 +335,10 @@ public class PlayerLocatorScreen extends Screen {
     }
 
     @Override
-    protected void applyBlur() {
-        // Skip blur — prevents "Can only blur once per frame" crash
-        // when screen renders over an already-blurred frame (shouldPause=false)
+    public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        // Skip vanilla renderBackground entirely to avoid "Can only blur once per frame"
+        // crash. We draw our own dark background manually in drawPanel() instead.
+        this.renderInGameBackground(context);
     }
 
     // Refresh player list every time screen ticks

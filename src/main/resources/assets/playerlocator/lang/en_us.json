@@ -1,0 +1,10 @@
+{
+  "category.playerlocator": "Player Locator",
+  "key.playerlocator.open_gui": "Open Player Locator",
+  "screen.playerlocator.title": "Player Locator",
+  "gui.playerlocator.search": "Search player...",
+  "gui.playerlocator.dimension.overworld": "Overworld",
+  "gui.playerlocator.dimension.nether": "Nether",
+  "gui.playerlocator.dimension.end": "The End",
+  "gui.playerlocator.dimension.unknown": "Unknown"
+}

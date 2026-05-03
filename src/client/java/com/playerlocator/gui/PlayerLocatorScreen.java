@@ -10,7 +10,6 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,9 +106,7 @@ public class PlayerLocatorScreen extends Screen {
             for (PlayerListEntry tab : net.getPlayerList()) {
                 String name = tab.getProfile().getName();
                 if (addedNames.contains(name)) continue;
-                // getSkinTextures() is available on PlayerListEntry directly
-                Identifier skin = tab.getSkinTextures().texture();
-                allPlayers.add(PlayerEntry.fromTabEntry(tab, skin));
+                allPlayers.add(PlayerEntry.fromTabEntry(tab, null));
             }
         }
 

@@ -10,10 +10,9 @@ import net.minecraft.util.Identifier;
  *   Face layer:    UV pixel (8,8) size 8x8
  *   Hat overlay:   UV pixel (40,8) size 8x8
  *
- * DrawContext.drawTexture signature used (1.21.1):
- *   drawTexture(Identifier, int x, int y, int width, int height,
- *               float u, float v, int regionWidth, int regionHeight,
- *               int textureWidth, int textureHeight)
+ * DrawContext.drawTexture signature used (1.21.1 Yarn):
+ *   drawTexture(Identifier, int x, int y, float u, float v,
+ *               int width, int height, int textureWidth, int textureHeight)
  */
 public class SkinHeadRenderer {
 

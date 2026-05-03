@@ -31,7 +31,7 @@ public class PlayerEntry {
         this.z = z;
         this.dimension = dimension;
         this.isLocal = isLocal;
-        this.skinTexture = skinTexture;
+        this.skinTexture = (skinTexture != null) ? skinTexture : DEFAULT_SKIN;
     }
 
     /**
@@ -41,8 +41,15 @@ public class PlayerEntry {
     public static PlayerEntry fromEntity(PlayerEntity player, boolean isLocal) {
         String dim = getDimensionName(player.getWorld());
         Identifier skin = DEFAULT_SKIN;
-        if (player instanceof AbstractClientPlayerEntity clientPlayer) {
-            skin = clientPlayer.getSkinTextures().texture();
+        try {
+            if (player instanceof AbstractClientPlayerEntity clientPlayer) {
+                SkinTextures textures = clientPlayer.getSkinTextures();
+                if (textures != null && textures.texture() != null) {
+                    skin = textures.texture();
+                }
+            }
+        } catch (Exception ignored) {
+            // Skin not loaded yet, use default
         }
         return new PlayerEntry(
             player.getName().getString(),
@@ -55,12 +62,21 @@ public class PlayerEntry {
      * Build a PlayerEntry from a tab-list entry (player not in render distance).
      */
     public static PlayerEntry fromTabEntry(PlayerListEntry entry, Identifier skin) {
+        Identifier safeSkin = DEFAULT_SKIN;
+        try {
+            SkinTextures textures = entry.getSkinTextures();
+            if (textures != null && textures.texture() != null) {
+                safeSkin = textures.texture();
+            }
+        } catch (Exception ignored) {
+            // Use default skin
+        }
         return new PlayerEntry(
             entry.getProfile().getName(),
             0, 0, 0,
             "Unknown",
             false,
-            skin
+            safeSkin
         );
     }
 

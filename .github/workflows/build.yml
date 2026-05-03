@@ -23,8 +23,13 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Gradle
+      - name: Setup Gradle 8.14
         uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14'
+
+      - name: Generate Gradle Wrapper
+        run: gradle wrapper --gradle-version 8.14 --no-daemon
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -39,7 +44,6 @@ jobs:
           path: build/libs/*.jar
           if-no-files-found: error
 
-      # Auto-release when a version tag is pushed (e.g. v1.0.0)
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2

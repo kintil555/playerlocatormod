@@ -1,11 +1,10 @@
 package com.playerlocator.client;
 
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
+import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 public class PlayerEntry {
 
@@ -13,18 +12,18 @@ public class PlayerEntry {
     public final double x, y, z;
     public final String dimension;
     public final boolean isLocal;
-    public final Identifier skinTexture;
+    public final ResourceLocation skinTexture;
 
     public static final String DIM_OVERWORLD = "Overworld";
     public static final String DIM_NETHER    = "Nether";
     public static final String DIM_END       = "The End";
 
     // Default Steve skin fallback
-    private static final Identifier DEFAULT_SKIN =
-        Identifier.of("minecraft", "textures/entity/player/wide/steve.png");
+    private static final ResourceLocation DEFAULT_SKIN =
+        ResourceLocation.withDefaultNamespace("textures/entity/player/wide/steve.png");
 
     public PlayerEntry(String name, double x, double y, double z,
-                       String dimension, boolean isLocal, Identifier skinTexture) {
+                       String dimension, boolean isLocal, ResourceLocation skinTexture) {
         this.name = name;
         this.x = x;
         this.y = y;
@@ -35,18 +34,15 @@ public class PlayerEntry {
     }
 
     /**
-     * Build a PlayerEntry from a loaded PlayerEntity.
-     * getSkinTextures() is only on AbstractClientPlayerEntity (client-side subclass).
+     * Build a PlayerEntry from a loaded Player entity.
      */
-    public static PlayerEntry fromEntity(PlayerEntity player, boolean isLocal) {
-        String dim = getDimensionName(player.getWorld());
-        Identifier skin = DEFAULT_SKIN;
+    public static PlayerEntry fromEntity(Player player, boolean isLocal) {
+        String dim = getDimensionName(player.level());
+        ResourceLocation skin = DEFAULT_SKIN;
         try {
-            if (player instanceof AbstractClientPlayerEntity clientPlayer) {
-                SkinTextures textures = clientPlayer.getSkinTextures();
-                if (textures != null && textures.texture() != null) {
-                    skin = textures.texture();
-                }
+            if (player instanceof AbstractClientPlayer clientPlayer) {
+                ResourceLocation tex = clientPlayer.getSkinTextureLocation();
+                if (tex != null) skin = tex;
             }
         } catch (Exception ignored) {
             // Skin not loaded yet, use default
@@ -61,12 +57,13 @@ public class PlayerEntry {
     /**
      * Build a PlayerEntry from a tab-list entry (player not in render distance).
      */
-    public static PlayerEntry fromTabEntry(PlayerListEntry entry, Identifier skin) {
-        Identifier safeSkin = DEFAULT_SKIN;
+    public static PlayerEntry fromTabEntry(PlayerInfo entry, ResourceLocation skin) {
+        ResourceLocation safeSkin = DEFAULT_SKIN;
         try {
-            SkinTextures textures = entry.getSkinTextures();
-            if (textures != null && textures.texture() != null) {
-                safeSkin = textures.texture();
+            if (skin != null) safeSkin = skin;
+            else {
+                ResourceLocation tex = entry.getSkinTextureLocation();
+                if (tex != null) safeSkin = tex;
             }
         } catch (Exception ignored) {
             // Use default skin
@@ -80,12 +77,12 @@ public class PlayerEntry {
         );
     }
 
-    private static String getDimensionName(World world) {
-        net.minecraft.registry.RegistryKey<World> key = world.getRegistryKey();
-        if (key == World.OVERWORLD) return DIM_OVERWORLD;
-        if (key == World.NETHER)    return DIM_NETHER;
-        if (key == World.END)       return DIM_END;
-        return key.getValue().getPath();
+    private static String getDimensionName(Level level) {
+        var key = level.dimension();
+        if (key == Level.OVERWORLD) return DIM_OVERWORLD;
+        if (key == Level.NETHER)    return DIM_NETHER;
+        if (key == Level.END)       return DIM_END;
+        return key.location().getPath();
     }
 
     public String coordsString() {

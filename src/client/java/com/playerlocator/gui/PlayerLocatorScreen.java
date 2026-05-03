@@ -17,7 +17,6 @@ import java.util.List;
 
 public class PlayerLocatorScreen extends Screen {
 
-    // Layout constants
     private static final int PANEL_W = 360;
     private static final int PANEL_H = 260;
     private static final int HEAD_SIZE = 20;
@@ -25,7 +24,6 @@ public class PlayerLocatorScreen extends Screen {
     private static final int INNER_PAD = 10;
     private static final int SCROLL_BAR_W = 6;
 
-    // Colors (ARGB)
     private static final int COL_BG          = 0xE5101318;
     private static final int COL_HEADER      = 0xFF1A2030;
     private static final int COL_ROW_EVEN    = 0xFF12181F;
@@ -42,13 +40,12 @@ public class PlayerLocatorScreen extends Screen {
     private int panelX, panelY;
 
     private EditBox searchField;
-    private List<PlayerEntry> allPlayers  = new ArrayList<>();
+    private List<PlayerEntry> allPlayers      = new ArrayList<>();
     private List<PlayerEntry> filteredPlayers = new ArrayList<>();
 
     private int scrollOffset = 0;
     private int hoveredRow   = -1;
 
-    // Dragging
     private boolean dragging = false;
     private int dragOffsetX, dragOffsetY;
 
@@ -61,16 +58,12 @@ public class PlayerLocatorScreen extends Screen {
         panelX = (width  - PANEL_W) / 2;
         panelY = (height - PANEL_H) / 2;
 
-        // Search field — positioned inside header bar
         int sfX = panelX + INNER_PAD;
         int sfY = panelY + 34;
         int sfW = PANEL_W - INNER_PAD * 2 - 4;
 
-        searchField = new EditBox(
-            font,
-            sfX, sfY, sfW, 18,
-            Component.translatable("gui.playerlocator.search")
-        );
+        searchField = new EditBox(font, sfX, sfY, sfW, 18,
+            Component.translatable("gui.playerlocator.search"));
         searchField.setMaxLength(32);
         searchField.setHint(Component.literal("Search player..."));
         searchField.setResponder(s -> {
@@ -83,8 +76,6 @@ public class PlayerLocatorScreen extends Screen {
         applyFilter("");
     }
 
-    // ── Data gathering ───────────────────────────────────────────────────────
-
     private void refreshPlayers() {
         allPlayers.clear();
         Minecraft mc = Minecraft.getInstance();
@@ -92,7 +83,6 @@ public class PlayerLocatorScreen extends Screen {
 
         List<String> addedNames = new ArrayList<>();
 
-        // Prefer actual loaded entities (have real coordinates + dimension)
         for (Player p : mc.level.players()) {
             boolean isLocal = p.getUUID().equals(mc.player.getUUID());
             PlayerEntry entry = PlayerEntry.fromEntity(p, isLocal);
@@ -100,19 +90,17 @@ public class PlayerLocatorScreen extends Screen {
             addedNames.add(p.getName().getString());
         }
 
-        // Fill remaining from tab list (offline/distant players on servers)
         ClientPacketListener net = mc.getConnection();
         if (net != null) {
             for (PlayerInfo tab : net.getOnlinePlayers()) {
                 String name = tab.getProfile().getName();
                 if (addedNames.contains(name)) continue;
                 ResourceLocation skin = null;
-                try { skin = tab.getSkinTextures().texture(); } catch (Exception ignored) {}
+                try { skin = tab.getSkin().texture(); } catch (Exception ignored) {}
                 allPlayers.add(PlayerEntry.fromTabEntry(tab, skin));
             }
         }
 
-        // Sort: local player first, then alphabetical
         allPlayers.sort((a, b) -> {
             if (a.isLocal) return -1;
             if (b.isLocal) return 1;
@@ -130,51 +118,36 @@ public class PlayerLocatorScreen extends Screen {
         }
     }
 
-    // ── Rendering ────────────────────────────────────────────────────────────
-
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        // Render in-game background (no blur — avoids "Can only blur once per frame" crash)
         this.renderTransparentBackground(graphics);
-
         drawPanel(graphics, mouseX, mouseY);
         super.render(graphics, mouseX, mouseY, delta);
     }
 
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
-        // Skip vanilla renderBackground to avoid triggering applyBlur/blur
-        // which crashes with IllegalStateException when shouldPause=false
         this.renderTransparentBackground(graphics);
     }
 
     private void drawPanel(GuiGraphics g, int mx, int my) {
-        // Shadow
         g.fill(panelX + 4, panelY + 4, panelX + PANEL_W + 4, panelY + PANEL_H + 4, 0x66000000);
-
-        // Background
         g.fill(panelX, panelY, panelX + PANEL_W, panelY + PANEL_H, COL_BG);
         drawBorder(g, panelX, panelY, PANEL_W, PANEL_H, COL_BORDER);
 
-        // Header bar
         g.fill(panelX, panelY, panelX + PANEL_W, panelY + 28, COL_HEADER);
 
-        // Title
         String title = "Player Locator";
         int titleW = font.width(title);
         g.drawString(font, title, panelX + (PANEL_W - titleW) / 2, panelY + 10, COL_ACCENT, false);
 
-        // Player count badge
         String countStr = filteredPlayers.size() + " players";
         g.drawString(font, countStr, panelX + PANEL_W - font.width(countStr) - INNER_PAD, panelY + 10, 0xFF667799, false);
 
-        // Close button [X]
         g.drawString(font, "x", panelX + PANEL_W - 14, panelY + 5, 0xFFFF5555, false);
 
-        // Separator under header
         g.fill(panelX, panelY + 28, panelX + PANEL_W, panelY + 29, COL_ACCENT);
 
-        // Player list area starts at panelY + 60
         int listY = panelY + 60;
         int listH = PANEL_H - 70;
         int listW = PANEL_W - SCROLL_BAR_W - 4;
@@ -198,13 +171,11 @@ public class PlayerLocatorScreen extends Screen {
             drawRow(g, entry, panelX, rowY, listW, ROW_H, idx, isHovered);
         }
 
-        // Scrollbar
         if (filteredPlayers.size() > visibleRows) {
             drawScrollbar(g, panelX + PANEL_W - SCROLL_BAR_W - 2,
                 listY, SCROLL_BAR_W, listH, filteredPlayers.size(), visibleRows);
         }
 
-        // Footer
         g.fill(panelX, panelY + PANEL_H - 18, panelX + PANEL_W, panelY + PANEL_H, COL_HEADER);
         String hint = "Scroll to browse  |  Press ` to close";
         g.drawString(font, hint,
@@ -226,12 +197,11 @@ public class PlayerLocatorScreen extends Screen {
         SkinHeadRenderer.drawWithBorder(g, e.skinTexture, cx, headY, HEAD_SIZE, borderColor);
         cx += HEAD_SIZE + 8;
 
-        String nameDisplay = e.name;
         int nameColor = e.isLocal ? 0xFFFFCC44 : COL_TEXT;
-        g.drawString(font, nameDisplay, cx, rowY + 4, nameColor, false);
+        g.drawString(font, e.name, cx, rowY + 4, nameColor, false);
 
         if (e.isLocal) {
-            int badgeX = cx + font.width(nameDisplay) + 4;
+            int badgeX = cx + font.width(e.name) + 4;
             g.fill(badgeX, rowY + 3, badgeX + 26, rowY + 13, COL_LOCAL_BADGE);
             g.drawString(font, "YOU", badgeX + 3, rowY + 4, 0xFFAAFFAA, false);
         }
@@ -264,19 +234,14 @@ public class PlayerLocatorScreen extends Screen {
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
-    // 1.21.9+: mouse/key event signatures changed to use event objects
-    // (MouseButtonEvent, KeyEvent) instead of raw coords/ints.
 
     @Override
-    public boolean mouseClicked(net.minecraft.client.gui.MouseButtonEvent event, boolean doubleClick) {
-        double mx = event.getX();
-        double my = event.getY();
+    public boolean mouseClicked(double mx, double my, int button) {
         if (mx >= panelX + PANEL_W - 16 && mx <= panelX + PANEL_W - 2
          && my >= panelY + 2 && my <= panelY + 14) {
             onClose();
             return true;
         }
-
         if (mx >= panelX && mx < panelX + PANEL_W
          && my >= panelY && my < panelY + 28) {
             dragging = true;
@@ -284,31 +249,27 @@ public class PlayerLocatorScreen extends Screen {
             dragOffsetY = (int) my - panelY;
             return true;
         }
-
-        return super.mouseClicked(event, doubleClick);
+        return super.mouseClicked(mx, my, button);
     }
 
     @Override
-    public boolean mouseDragged(net.minecraft.client.gui.MouseButtonEvent event, double dx, double dy) {
-        double mx = event.getX();
-        double my = event.getY();
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
         if (dragging) {
             panelX = (int) mx - dragOffsetX;
             panelY = (int) my - dragOffsetY;
             panelX = Math.max(0, Math.min(panelX, width  - PANEL_W));
             panelY = Math.max(0, Math.min(panelY, height - PANEL_H));
-
             searchField.setX(panelX + INNER_PAD);
             searchField.setY(panelY + 34);
             return true;
         }
-        return super.mouseDragged(event, dx, dy);
+        return super.mouseDragged(mx, my, button, dx, dy);
     }
 
     @Override
-    public boolean mouseReleased(net.minecraft.client.gui.MouseButtonEvent event) {
+    public boolean mouseReleased(double mx, double my, int button) {
         dragging = false;
-        return super.mouseReleased(event);
+        return super.mouseReleased(mx, my, button);
     }
 
     @Override
@@ -320,19 +281,18 @@ public class PlayerLocatorScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(net.minecraft.client.gui.KeyEvent event) {
-        int keyCode = event.getKey();
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
          || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_GRAVE_ACCENT) {
             onClose();
             return true;
         }
-        return super.keyPressed(event);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
     public boolean isPauseScreen() {
-        return false; // keep game running
+        return false;
     }
 
     @Override

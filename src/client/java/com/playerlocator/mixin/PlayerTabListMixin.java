@@ -10,9 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * Replaces the ping/latency dot in the tab-list with the player's skin head.
- */
 @Mixin(PlayerTabOverlay.class)
 public abstract class PlayerTabListMixin {
 
@@ -20,7 +17,7 @@ public abstract class PlayerTabListMixin {
         method = "renderPingIcon",
         at = @At("HEAD"),
         cancellable = true,
-        require = 0   // Don't crash if method is renamed/removed
+        require = 0
     )
     private void onRenderPingIcon(GuiGraphics graphics,
                                   int width,
@@ -28,14 +25,10 @@ public abstract class PlayerTabListMixin {
                                   PlayerInfo entry,
                                   CallbackInfo ci) {
         try {
-            // 1.21.x: use getSkinTextures().texture() instead of getSkinTextureLocation()
-            ResourceLocation skin = entry.getSkinTextures().texture();
-            if (skin == null) return; // fallback to vanilla if no skin loaded
-            // Draw 10×10 skin head in place of the latency dot
+            ResourceLocation skin = entry.getSkin().texture();
+            if (skin == null) return;
             SkinHeadRenderer.drawWithBorder(graphics, skin, x, y - 1, 10, 0x55FFFFFF);
             ci.cancel();
-        } catch (Exception ignored) {
-            // Fallback: let vanilla render the original icon
-        }
+        } catch (Exception ignored) {}
     }
 }

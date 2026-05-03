@@ -23,6 +23,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Download Gradle wrapper jar
+        run: |
+          curl -L "https://github.com/gradle/gradle/raw/v9.2.0/gradle/wrapper/gradle-wrapper.jar" \
+            -o gradle/wrapper/gradle-wrapper.jar
+          ls -lh gradle/wrapper/gradle-wrapper.jar
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:

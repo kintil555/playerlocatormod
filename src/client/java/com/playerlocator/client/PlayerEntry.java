@@ -1,9 +1,10 @@
 package com.playerlocator.client;
 
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.util.SkinTextures;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class PlayerEntry {
@@ -14,10 +15,13 @@ public class PlayerEntry {
     public final boolean isLocal;
     public final Identifier skinTexture;
 
-    // Dimension display names
     public static final String DIM_OVERWORLD = "Overworld";
     public static final String DIM_NETHER    = "Nether";
     public static final String DIM_END       = "The End";
+
+    // Default Steve skin fallback
+    private static final Identifier DEFAULT_SKIN =
+        Identifier.of("minecraft", "textures/entity/player/wide/steve.png");
 
     public PlayerEntry(String name, double x, double y, double z,
                        String dimension, boolean isLocal, Identifier skinTexture) {
@@ -31,25 +35,24 @@ public class PlayerEntry {
     }
 
     /**
-     * Build a PlayerEntry from a living PlayerEntity visible to the client.
+     * Build a PlayerEntry from a loaded PlayerEntity.
+     * getSkinTextures() is only on AbstractClientPlayerEntity (client-side subclass).
      */
     public static PlayerEntry fromEntity(PlayerEntity player, boolean isLocal) {
         String dim = getDimensionName(player.getWorld());
-        Identifier skin = player.getSkinTextures().texture();
+        Identifier skin = DEFAULT_SKIN;
+        if (player instanceof AbstractClientPlayerEntity clientPlayer) {
+            skin = clientPlayer.getSkinTextures().texture();
+        }
         return new PlayerEntry(
             player.getName().getString(),
-            player.getX(),
-            player.getY(),
-            player.getZ(),
-            dim,
-            isLocal,
-            skin
+            player.getX(), player.getY(), player.getZ(),
+            dim, isLocal, skin
         );
     }
 
     /**
-     * Build a PlayerEntry from a tab-list entry (player not loaded in world).
-     * Coordinates will be 0/0/0 with unknown dimension.
+     * Build a PlayerEntry from a tab-list entry (player not in render distance).
      */
     public static PlayerEntry fromTabEntry(PlayerListEntry entry, Identifier skin) {
         return new PlayerEntry(
@@ -69,12 +72,10 @@ public class PlayerEntry {
         return key.getValue().getPath();
     }
 
-    /** Formatted coordinate string */
     public String coordsString() {
         return String.format("X: %.0f  Y: %.0f  Z: %.0f", x, y, z);
     }
 
-    /** Dimension color: Overworld = green, Nether = red, End = purple, else gray */
     public int dimensionColor() {
         return switch (dimension) {
             case DIM_OVERWORLD -> 0xFF55FF55;

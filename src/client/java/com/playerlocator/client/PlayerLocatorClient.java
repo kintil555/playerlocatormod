@@ -15,11 +15,13 @@ public class PlayerLocatorClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         // Register keybinding: backtick (`) to open GUI
+        // In 1.21.9+, KeyMapping constructor requires KeyMapping.Category instead of String.
+        // Use MISC_CATEGORY as the category.
         openGuiKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
             "key.playerlocator.open_gui",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_GRAVE_ACCENT, // ` key
-            "category.playerlocator"
+            KeyMapping.MISC_CATEGORY
         ));
 
         // Tick event to detect key press

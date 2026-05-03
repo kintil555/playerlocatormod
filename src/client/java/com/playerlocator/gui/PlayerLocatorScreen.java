@@ -107,7 +107,7 @@ public class PlayerLocatorScreen extends Screen {
                 String name = tab.getProfile().getName();
                 if (addedNames.contains(name)) continue;
                 ResourceLocation skin = null;
-                try { skin = tab.getSkinTextureLocation(); } catch (Exception ignored) {}
+                try { skin = tab.getSkinTextures().texture(); } catch (Exception ignored) {}
                 allPlayers.add(PlayerEntry.fromTabEntry(tab, skin));
             }
         }
@@ -264,9 +264,13 @@ public class PlayerLocatorScreen extends Screen {
     }
 
     // ── Input ─────────────────────────────────────────────────────────────────
+    // 1.21.9+: mouse/key event signatures changed to use event objects
+    // (MouseButtonEvent, KeyEvent) instead of raw coords/ints.
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
+    public boolean mouseClicked(net.minecraft.client.gui.MouseButtonEvent event, boolean doubleClick) {
+        double mx = event.getX();
+        double my = event.getY();
         if (mx >= panelX + PANEL_W - 16 && mx <= panelX + PANEL_W - 2
          && my >= panelY + 2 && my <= panelY + 14) {
             onClose();
@@ -281,11 +285,13 @@ public class PlayerLocatorScreen extends Screen {
             return true;
         }
 
-        return super.mouseClicked(mx, my, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+    public boolean mouseDragged(net.minecraft.client.gui.MouseButtonEvent event, double dx, double dy) {
+        double mx = event.getX();
+        double my = event.getY();
         if (dragging) {
             panelX = (int) mx - dragOffsetX;
             panelY = (int) my - dragOffsetY;
@@ -296,13 +302,13 @@ public class PlayerLocatorScreen extends Screen {
             searchField.setY(panelY + 34);
             return true;
         }
-        return super.mouseDragged(mx, my, button, dx, dy);
+        return super.mouseDragged(event, dx, dy);
     }
 
     @Override
-    public boolean mouseReleased(double mx, double my, int button) {
+    public boolean mouseReleased(net.minecraft.client.gui.MouseButtonEvent event) {
         dragging = false;
-        return super.mouseReleased(mx, my, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -314,13 +320,14 @@ public class PlayerLocatorScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(net.minecraft.client.gui.KeyEvent event) {
+        int keyCode = event.getKey();
         if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE
          || keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_GRAVE_ACCENT) {
             onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override

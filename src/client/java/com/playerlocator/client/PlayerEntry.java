@@ -41,7 +41,8 @@ public class PlayerEntry {
         ResourceLocation skin = DEFAULT_SKIN;
         try {
             if (player instanceof AbstractClientPlayer clientPlayer) {
-                ResourceLocation tex = clientPlayer.getSkinTextureLocation();
+                // 1.21.x: getSkinTextureLocation() removed, use getSkinTextures().texture()
+                ResourceLocation tex = clientPlayer.getSkinTextures().texture();
                 if (tex != null) skin = tex;
             }
         } catch (Exception ignored) {
@@ -60,16 +61,24 @@ public class PlayerEntry {
     public static PlayerEntry fromTabEntry(PlayerInfo entry, ResourceLocation skin) {
         ResourceLocation safeSkin = DEFAULT_SKIN;
         try {
-            if (skin != null) safeSkin = skin;
-            else {
-                ResourceLocation tex = entry.getSkinTextureLocation();
+            if (skin != null) {
+                safeSkin = skin;
+            } else {
+                // 1.21.x: use getSkinTextures().texture() instead of getSkinTextureLocation()
+                ResourceLocation tex = entry.getSkinTextures().texture();
                 if (tex != null) safeSkin = tex;
             }
         } catch (Exception ignored) {
             // Use default skin
         }
+        String playerName;
+        try {
+            playerName = entry.getProfile().getName();
+        } catch (Exception ignored) {
+            playerName = "Unknown";
+        }
         return new PlayerEntry(
-            entry.getProfile().getName(),
+            playerName,
             0, 0, 0,
             "Unknown",
             false,

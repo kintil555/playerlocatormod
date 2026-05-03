@@ -28,7 +28,9 @@ public abstract class PlayerTabListMixin {
                                   PlayerInfo entry,
                                   CallbackInfo ci) {
         try {
-            ResourceLocation skin = entry.getSkinTextureLocation();
+            // 1.21.x: use getSkinTextures().texture() instead of getSkinTextureLocation()
+            ResourceLocation skin = entry.getSkinTextures().texture();
+            if (skin == null) return; // fallback to vanilla if no skin loaded
             // Draw 10×10 skin head in place of the latency dot
             SkinHeadRenderer.drawWithBorder(graphics, skin, x, y - 1, 10, 0x55FFFFFF);
             ci.cancel();

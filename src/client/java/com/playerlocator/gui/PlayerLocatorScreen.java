@@ -334,6 +334,12 @@ public class PlayerLocatorScreen extends Screen {
         return false; // keep game running
     }
 
+    @Override
+    protected void applyBlur() {
+        // Skip blur — prevents "Can only blur once per frame" crash
+        // when screen renders over an already-blurred frame (shouldPause=false)
+    }
+
     // Refresh player list every time screen ticks
     @Override
     public void tick() {

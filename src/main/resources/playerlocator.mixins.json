@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.playerlocator.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "PlayerTabListMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

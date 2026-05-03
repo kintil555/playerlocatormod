@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "playerlocator",
+  "version": "${version}",
+  "name": "Player Locator",
+  "description": "Advanced player locator mod: track player coordinates, skin heads, search, and dimension info. Replaces tab dots with player skin heads!",
+  "authors": [
+    "YourName"
+  ],
+  "contact": {
+    "sources": "https://github.com/yourusername/playerlocator"
+  },
+  "license": "MIT",
+  "icon": "assets/playerlocator/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.playerlocator.client.PlayerLocatorClient"
+    ]
+  },
+  "mixins": [
+    "playerlocator.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1",
+    "java": ">=21"
+  }
+}

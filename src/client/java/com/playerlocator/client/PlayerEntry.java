@@ -62,11 +62,11 @@ public class PlayerEntry {
     }
 
     private static String getDimensionName(World world) {
-        Identifier id = world.getRegistryKey().getValue();
-        if (id.equals(World.OVERWORLD.getValue())) return DIM_OVERWORLD;
-        if (id.equals(World.NETHER.getValue()))    return DIM_NETHER;
-        if (id.equals(World.END.getValue()))       return DIM_END;
-        return id.getPath();
+        net.minecraft.registry.RegistryKey<World> key = world.getRegistryKey();
+        if (key == World.OVERWORLD) return DIM_OVERWORLD;
+        if (key == World.NETHER)    return DIM_NETHER;
+        if (key == World.END)       return DIM_END;
+        return key.getValue().getPath();
     }
 
     /** Formatted coordinate string */

@@ -134,8 +134,8 @@ public class PlayerLocatorScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        // Dim background
-        renderBackground(context, mouseX, mouseY, delta);
+        // Render darkened backdrop (vanilla method signature for 1.21.1)
+        this.renderBackground(context, mouseX, mouseY, delta);
 
         drawPanel(context, mouseX, mouseY);
         super.render(context, mouseX, mouseY, delta);

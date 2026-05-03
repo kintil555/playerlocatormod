@@ -11,40 +11,36 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Replaces the colored dot on the tab/player-list HUD
- * with the actual player skin head.
+ * Replaces the ping/latency dot in the tab-list with the player's skin head.
  *
- * The vanilla method renderLatencyIcon() draws a small dot/icon
- * at the right side of each player row. We inject BEFORE it runs
- * and cancel it, then draw the skin head instead.
+ * In Minecraft 1.21.1 (Yarn), PlayerListHud has a private method that renders
+ * the connection latency icon next to each player name. We cancel it and draw
+ * a skin head instead.
  *
- * Note: In 1.21.x the method signature is:
- *   renderLatencyIcon(DrawContext context, int width, int x, int y, PlayerListEntry entry)
+ * If the mixin target method name changes between MC versions, set
+ * require = 0 in @Inject so the game still loads (head icons just won't show).
  */
 @Mixin(PlayerListHud.class)
 public abstract class PlayerTabListMixin {
 
-    /**
-     * Inject before the latency icon is rendered.
-     * We draw a 10×10 skin head in its place and cancel the original icon.
-     */
     @Inject(
         method = "renderLatencyIcon",
         at = @At("HEAD"),
-        cancellable = true
+        cancellable = true,
+        require = 0   // Don't crash if method is renamed/removed
     )
     private void onRenderLatencyIcon(DrawContext context,
-                                     int width, int x, int y,
+                                     int width,
+                                     int x, int y,
                                      PlayerListEntry entry,
                                      CallbackInfo ci) {
         try {
             Identifier skin = entry.getSkinTextures().texture();
-            // Draw a 10×10 head, vertically centred at the icon slot (typically 9px tall)
-            SkinHeadRenderer.drawWithBorder(context, skin, x, y - 1, 10, 0x66FFFFFF);
-            // Cancel the original dot rendering
+            // Draw 10×10 skin head in place of the latency dot
+            SkinHeadRenderer.drawWithBorder(context, skin, x, y - 1, 10, 0x55FFFFFF);
             ci.cancel();
         } catch (Exception ignored) {
-            // If anything fails, let the original icon render
+            // Fallback: let vanilla render the original icon
         }
     }
 }
